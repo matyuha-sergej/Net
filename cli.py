@@ -49,7 +49,14 @@ def process_image(image_path: str, model_path: str, confidence: float,
     ball_bbox = max(balls, key=lambda x: x[4])
     ball_center = ball_detector.get_ball_center(ball_bbox)
     
-    print(f"Мяч: bbox={ball_bbox[:4]}, confidence={ball_bbox[4]:.2f}")
+    # Вычисляем размер мяча для отладки
+    x1, y1, x2, y2, conf = ball_bbox
+    ball_width = x2 - x1
+    ball_height = y2 - y1
+    ball_diameter = (ball_width + ball_height) / 2
+    
+    print(f"Мяч: bbox={ball_bbox[:4]}, confidence={conf:.2f}")
+    print(f"Размер мяча: {ball_width}x{ball_height} px (диаметр: {ball_diameter:.1f} px)")
     
     # Детекция сетки
     net_line = net_detector.detect_net_line(image, net_method)
@@ -67,9 +74,13 @@ def process_image(image_path: str, model_path: str, confidence: float,
         ball_center, ball_bbox, net_x, image
     )
     
+    # Дополнительная информация об окклюзии
+    occlusion_score = position_analyzer._check_net_occlusion(ball_bbox, image)
+    
     print(f"\n{'='*50}")
     print(f"РЕЗУЛЬТАТ: {position.value}")
     print(f"Уверенность: {conf:.2%}")
+    print(f"Окклюзия сеткой: {occlusion_score:.2%}")
     print(f"{'='*50}\n")
     
     # Визуализация
